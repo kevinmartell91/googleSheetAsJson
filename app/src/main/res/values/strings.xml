@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">My Application</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="link_google_forms">https://docs.google.com/forms/d/19E9PPww0pmwc11VLhdZdKFRQERr4R3clFvqKfiEmDFc/viewform</string>
+    <string name="link_public_google_answer">https://docs.google.com/spreadsheets/d/1ShCAenr0xi0IhVPuA4elw7kbQfnNm9CiHYEUhMauF20/pubhtml</string>
+    <string name="link_json_data_googleSheet">https://docs.google.com/spreadsheets/d/1ShCAenr0xi0IhVPuA4elw7kbQfnNm9CiHYEUhMauF20/gviz/tq?pli=1</string>
+
+</resources>

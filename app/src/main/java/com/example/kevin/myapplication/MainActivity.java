@@ -8,6 +8,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.example.kevin.dao.entity.jsonParse.C;
+import com.example.kevin.dao.entity.jsonParse.GoogleSheet;
+import com.example.kevin.dao.entity.jsonParse.Row;
 import com.google.gson.Gson;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
@@ -17,34 +20,30 @@ import android.widget.Toast;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import com.example.kevin.services.*;
 import com.example.kevin.email.*;
-import com.example.kevin.entities.*;
+import com.example.kevin.dao.entity.*;
 
 /*
 Add imports
  */
-import com.google.gson.Gson;
-
-import android.app.ProgressDialog;
-import android.os.AsyncTask;
-import android.widget.Toast;
-
 
 
 public class MainActivity extends ActionBarActivity {
 
     TextView tv ;
-    List<Persona> personas;
+    Integer ENTORNO_DESARROLLO;
+    String fullURL;
+    List<Object> lsObjects ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         tv = (TextView)findViewById(R.id.textView);
+
+
     }
 
     public void buttonOnClick(View v){
@@ -52,12 +51,23 @@ public class MainActivity extends ActionBarActivity {
         Button button = (Button) v;
         ((Button) v).setText("Clicked");
 
-
-
         Log.i("[  INFO : ] -- ","buttonOnClick");
-        //Ya funciona automaticamente Edita el json de googlesheet
-        getDataAsync();
 
+         /*
+         0 -> TEST  ,   1 -> PRODUCCION
+         */
+        ENTORNO_DESARROLLO = 1 ;
+
+        if(ENTORNO_DESARROLLO == 0){
+
+            fullURL = "https://docs.google.com/spreadsheets/d/1ShCAenr0xi0IhVPuA4elw7kbQfnNm9CiHYEUhMauF20/gviz/tq";
+
+        }else if(ENTORNO_DESARROLLO == 1){
+
+            fullURL = "https://docs.google.com/spreadsheets/d/1yi7UyGQ1sU6M2X8TmcKizeO1dLL0ISDVsEKJAKb50Xc/gviz/tq";
+        }
+
+        getDataAsync();
 
         Thread t =new Thread(new Runnable() {
             @Override
@@ -104,12 +114,6 @@ public class MainActivity extends ActionBarActivity {
     public void getDataAsync(){
 
         try {
-            //https://docs.google.com/spreadsheets/d/1ShCAenr0xi0IhVPuA4elw7kbQfnNm9CiHYEUhMauF20/pubhtml
-            //String fullURL = "http://ip.jsontest.com/?callback=showMyIP";
-            //String fullURL = "https://spreadsheets.google.com/feeds/list/1ShCAenr0xi0IhVPuA4elw7kbQfnNm9CiHYEUhMauF20/1/public/values?alt=json-in-script&amp;callback=importGSS";
-            //String fullURL = "https://docs.google.com/spreadsheets/d/1tJ64Y8hje0ui4ap9U33h3KWwpxT_-JuVMSZzxD2Er8k/gviz/tq";
-            String fullURL = "https://docs.google.com/spreadsheets/d/1ShCAenr0xi0IhVPuA4elw7kbQfnNm9CiHYEUhMauF20/gviz/tq";
-
             //llamamos al servicio
             ServiceCaller caller = new ServiceCaller();
             caller.setUrl(fullURL);
@@ -117,18 +121,16 @@ public class MainActivity extends ActionBarActivity {
             Log.i("[  INFO : ] -- ","_Inicio llamada async - getDateAsync()");
             new CallServiceGoogleSheet(caller).execute();
 
-
-
         }catch (Exception ex){
             throw ex;
         }
     }
 
-    public  List<Persona> getDataFromJson(String json) {
+    public void getDataFromJson_Test(String json) {
 
         try {
 
-            List<Persona> lsPersonas = new ArrayList<>();
+            lsObjects = new ArrayList<Object>();
 
             //String jsonStatic = "{\"version\":\"0.6\",\"reqId\":\"0\",\"status\":\"ok\",\"sig\":\"2030944398\",\"table\":{\"cols\":[{\"id\":\"A\",\"label\":\"Timestamp\",\"type\":\"datetime\",\"pattern\":\"M/d/yyyy H:mm:ss\"},{\"id\":\"B\",\"label\":\"DNI\",\"type\":\"number\",\"pattern\":\"General\"},{\"id\":\"C\",\"label\":\"Correo\",\"type\":\"string\"},{\"id\":\"D\",\"label\":\"Codigo\",\"type\":\"number\",\"pattern\":\"General\"},{\"id\":\"E\",\"label\":\"Question\",\"type\":\"string\"},{\"id\":\"F\",\"label\":\"Codes\",\"type\":\"number\",\"pattern\":\"General\"}],\"rows\":[{\"c\":[{\"v\":\"new Date(2015,2,12,13,15,6)\",\"f\":\"3/12/2015 13:15:07\"},{\"v\":4.3214321E7,\"f\":\"43214321\"},{\"v\":\"kevinmartell91@gmail.com\"},{\"v\":123.0,\"f\":\"123\"},{\"v\":\"Si\"},{\"v\":1.0,\"f\":\"1\"}]},{\"c\":[{\"v\":\"new Date(2015,2,12,13,16,30)\",\"f\":\"3/12/2015 13:16:30\"},{\"v\":7.8094321E7,\"f\":\"78094321\"},{\"v\":\"kevinmartell91@outlook.com\"},{\"v\":101.0,\"f\":\"101\"},{\"v\":\"No\"},{\"v\":2.0,\"f\":\"2\"}]}]}}";
 
@@ -146,44 +148,121 @@ public class MainActivity extends ActionBarActivity {
 
                 // Creamos un bean persona para almacenarlo
                 Persona persona = new Persona();
+
                 for(int j = 0 ; j < c_list.size(); j++){
 
                     //obtenemos un campo de la persona para cada if y seteamos sus valores
                     C c = c_list.get(j);
 
-                    if( j == 0) { persona.setFecha(    c.getF()   );}
-                    if( j == 1) { persona.setDni(   Integer.parseInt( c.getF()));}
-                    if( j == 2) { persona.setCorreo(    c.getV()   );}
-                    if( j == 4) { persona.setPregunta1(    c.getV()   );}
-                    if( j == 5) {
-                        persona.setCodTemporal(  Integer.parseInt( c.getF())   );
+                    try {
+                        // En test
+                        if (j == 0) {
+                            persona.setFecha(c.getF());
+                        }
+                        if (j == 1) {
+                            persona.setDni(c.getF());
+                        }
+                        if (j == 2) {
+                            persona.setCorreo(c.getV());
+                        }
+                        if (j == 4) {
+                            persona.setPregunta1(c.getV());
+                        }
+                        if (j == 5) {
+                            persona.setCodTemporal(c.getV());
+                        }
+                    }catch(Exception ex){
+                        Log.i("Parse set to class exception",ex.toString());
                     }
                 }
-                lsPersonas.add(persona);
+                lsObjects.add(persona);
             }
 
-            tv.setText(lsPersonas.toString());
-
-            return lsPersonas;
+            tv.setText(lsObjects.toString());
 
         }catch (Exception ex){
                throw ex;
         }
     }
 
-    public void correoNotificar(final List<Persona> lsPersonas){
+    public  void getDataFromJson_Produccion(String json) {
+
+        try {
+
+            lsObjects = new ArrayList<Object>();
+
+            //String jsonStatic = "{\"version\":\"0.6\",\"reqId\":\"0\",\"status\":\"ok\",\"sig\":\"2030944398\",\"table\":{\"cols\":[{\"id\":\"A\",\"label\":\"Timestamp\",\"type\":\"datetime\",\"pattern\":\"M/d/yyyy H:mm:ss\"},{\"id\":\"B\",\"label\":\"DNI\",\"type\":\"number\",\"pattern\":\"General\"},{\"id\":\"C\",\"label\":\"Correo\",\"type\":\"string\"},{\"id\":\"D\",\"label\":\"Codigo\",\"type\":\"number\",\"pattern\":\"General\"},{\"id\":\"E\",\"label\":\"Question\",\"type\":\"string\"},{\"id\":\"F\",\"label\":\"Codes\",\"type\":\"number\",\"pattern\":\"General\"}],\"rows\":[{\"c\":[{\"v\":\"new Date(2015,2,12,13,15,6)\",\"f\":\"3/12/2015 13:15:07\"},{\"v\":4.3214321E7,\"f\":\"43214321\"},{\"v\":\"kevinmartell91@gmail.com\"},{\"v\":123.0,\"f\":\"123\"},{\"v\":\"Si\"},{\"v\":1.0,\"f\":\"1\"}]},{\"c\":[{\"v\":\"new Date(2015,2,12,13,16,30)\",\"f\":\"3/12/2015 13:16:30\"},{\"v\":7.8094321E7,\"f\":\"78094321\"},{\"v\":\"kevinmartell91@outlook.com\"},{\"v\":101.0,\"f\":\"101\"},{\"v\":\"No\"},{\"v\":2.0,\"f\":\"2\"}]}]}}";
+
+            Gson gson = new Gson();
+            //Parseamos en la clases creadas
+            final GoogleSheet googleSheet = gson.fromJson(json,GoogleSheet.class);
+
+            StringBuilder sb = new StringBuilder();
+            // obtiene le lista de postulantes
+            List<Row> rows = googleSheet.getTable().getRows();
+
+            for(int i = 0; i< rows.size() ; i++){
+                // obtiene la lista de campos de una persona
+                List<C> c_list = (List<C>)rows.get(i).getC();
+
+                // Creamos un bean persona para almacenarlo
+                Postulante postulante = new Postulante();
+
+                for(int j = 0 ; j < c_list.size(); j++){
+
+                    //obtenemos un campo de la persona para cada if y seteamos sus valores
+                    C c = c_list.get(j);
+
+                    // En produccion
+                    // TODO : falta editar y agregar mas campos manualmente desde google sheet
+                    if( j == 0) { postulante.setFecha_registro(    c.getF()   );} // revisar si al se el insert es mas rapido con el "v": new Date(2015, 2, 14, 0, 54, 56)
+                    if( j == 1) { postulante.setNombre(   ( c.getV()));}
+                    if( j == 2) { postulante.setApellido(    c.getV()   );}
+                    if( j == 3) { postulante.setDNI(    c.getF()   );}
+                    if( j == 4) { postulante.setE_mail(    c.getV()   );}
+                    if( j == 5) { postulante.setAlternativa_Elegida(  ( c.getV())   );
+                    }
+                }
+                lsObjects.add(postulante);
+            }
+
+            tv.setText(lsObjects.toString());
+
+        }catch (Exception ex){
+            throw ex;
+        }
+    }
+
+    public void correoNotificar(final List<Object> lsObjects){
 
          try {
-            final GMailSender sender = new GMailSender("TU_CORREO_@gmail.com", "TU_PASSWORD_");
+
+             //final List<Persona> personas = castCollection(lsObjects,Persona.class);
+             //List<Postulante> pustulantes = castCollection(lsObjects,Postulante.class);
+
+
+            final GMailSender sender = new GMailSender("kevinmartell91@gmail.com", "o0I9u8Y7");
+
             new Thread(new Runnable() {
                 public void run() {
                     try {
-                        for (int i = 0; i < lsPersonas.size(); i++) {
-                            sender.sendMail("Voluntades - Test envio de correos en automatico",
-                                    "Mensaje enviado en grupo , datos ingresados desde google form ",
-                                    "CORREO_DE_QUIEN_ENVIA_@gmail.com",
-                                    lsPersonas.get(i).getCorreo());
-                            Log.i("[  INFO : ] -- ","Envio de correo a : " + lsPersonas.get(i).getCorreo());
+                        if(ENTORNO_DESARROLLO == 0 ) {
+                            for (int i = 0; i < lsObjects.size(); i++) {
+                                sender.sendMail("Voluntades - Test envio de correos en automatico => ENTORNO_DESARROLLO : TEST" ,
+                                        "Mensaje enviado en grupo , datos ingresados desde google form ",
+                                        "kevinmartell91@gmail.com",
+                                        ((Persona) (lsObjects.get(i))).getCorreo());
+                                        //personas.get(i).getCorreo());
+                                Log.i("[  INFO : ] -- ", "Envio de correo a : " + ((Persona) (lsObjects.get(i))).getCorreo());
+                            }
+                        }else if(ENTORNO_DESARROLLO == 1){
+                            for (int i = 0; i < lsObjects.size(); i++) {
+                                sender.sendMail("Voluntades - Test envio de correos en automatico => ENTORNO_DESARROLLO : PRODUCCION",
+                                        "Mensaje enviado en grupo , datos ingresados desde google form ",
+                                        "kevinmartell91@gmail.com",
+                                        ((Postulante)(lsObjects.get(i))).getE_mail());
+                                Log.i("[  INFO : ] -- ","Envio de correo a : " + ((Postulante)(lsObjects.get(i))).getE_mail());
+                            }
                         }
                     } catch (Exception e) {
                         Toast.makeText(getApplicationContext(), "No se eviaron los correos, intente nuevamente",
@@ -196,26 +275,13 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+    public <T>List<T> castCollection(List srcList, Class<T> clas){
+        List<T> list =new ArrayList<T>();
+        for (Object obj : srcList) {
+            if(obj!=null && clas.isAssignableFrom(obj.getClass()))
+                list.add(clas.cast(obj));
         }
-
-        return super.onOptionsItemSelected(item);
+        return list;
     }
 
     public class CallServiceGoogleSheet extends AsyncTask<String, Void, String> {
@@ -256,13 +322,21 @@ public class MainActivity extends ActionBarActivity {
                 if(result != null) {
 
                     Log.i("[  INFO : ] -- ","_Retrieve Data" + (String) result);
+
                     String jsonEdited =  editBabJsonRevievedfromGoogleSheet((String) result);
                     Log.i("[  INFO : ] -- ","_Retrieve Data Edited : " +jsonEdited);
+
                     tv.setText(jsonEdited);
 
-                    personas =  getDataFromJson(jsonEdited);
-                    //Si el correo no existe notifica a quien lo envio
-                    correoNotificar(personas);
+                    if(ENTORNO_DESARROLLO == 0){
+                        getDataFromJson_Test(jsonEdited);
+
+                    }
+                    else if(ENTORNO_DESARROLLO == 1){
+                        getDataFromJson_Produccion(jsonEdited);
+                    }
+
+                    correoNotificar(lsObjects);
 
                     Toast.makeText(
                             getApplicationContext(),
@@ -287,12 +361,34 @@ public class MainActivity extends ActionBarActivity {
             google.visualization.Query.setResponse(      { json Valido .... }        );
              */
             pResult = pResult.replaceAll("google.visualization.Query.setResponse\\(","");
-            pResult =pResult.replaceAll("new","\"new");
+            pResult = pResult.replaceAll("new","\"new");
             pResult = pResult.replaceAll("\\),\"f\"","\\)\",\"f\"");
             pResult = pResult.replaceAll("\\);","");
             return pResult;
         }
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
 }

@@ -56,15 +56,16 @@ public class MainActivity extends ActionBarActivity {
          /*
          0 -> TEST  ,   1 -> PRODUCCION
          */
-        ENTORNO_DESARROLLO = 1 ;
+        ENTORNO_DESARROLLO = 0 ;
 
-        if(ENTORNO_DESARROLLO == 0){
+        if(ENTORNO_DESARROLLO == 0){ //Test
 
             fullURL = "https://docs.google.com/spreadsheets/d/1ShCAenr0xi0IhVPuA4elw7kbQfnNm9CiHYEUhMauF20/gviz/tq";
 
-        }else if(ENTORNO_DESARROLLO == 1){
+        }else if(ENTORNO_DESARROLLO == 1){ //Produccion
 
-            fullURL = "https://docs.google.com/spreadsheets/d/1yi7UyGQ1sU6M2X8TmcKizeO1dLL0ISDVsEKJAKb50Xc/gviz/tq";
+            fullURL = "https://docs.google.com/spreadsheets/d/1kApxbLKpxogz0T9PRCvyzhNZqA8j-o6UFhOZKjMyQwo/gviz/tq";
+
         }
 
         getDataAsync();
@@ -241,7 +242,7 @@ public class MainActivity extends ActionBarActivity {
              //List<Postulante> pustulantes = castCollection(lsObjects,Postulante.class);
 
 
-            final GMailSender sender = new GMailSender("kevinmartell91@gmail.com", "o0I9u8Y7");
+            final GMailSender sender = new GMailSender("TU_EMAIL@gmail.com", "TU_PASSWORD");
 
             new Thread(new Runnable() {
                 public void run() {
@@ -250,7 +251,7 @@ public class MainActivity extends ActionBarActivity {
                             for (int i = 0; i < lsObjects.size(); i++) {
                                 sender.sendMail("Voluntades - Test envio de correos en automatico => ENTORNO_DESARROLLO : TEST" ,
                                         "Mensaje enviado en grupo , datos ingresados desde google form ",
-                                        "kevinmartell91@gmail.com",
+                                        "TU_MAIL@gmail.com",
                                         ((Persona) (lsObjects.get(i))).getCorreo());
                                         //personas.get(i).getCorreo());
                                 Log.i("[  INFO : ] -- ", "Envio de correo a : " + ((Persona) (lsObjects.get(i))).getCorreo());

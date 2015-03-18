@@ -11,6 +11,8 @@ public class Postulante {
     private String DNI;
     private String E_mail;
     private String Alternativa_Elegida;
+    private String Fecha_Nacimiento;
+    private String Mayor_Edad;
 
 
     public String getFecha_registro() {
@@ -57,5 +59,21 @@ public class Postulante {
 
     public void setAlternativa_Elegida(String alternativa_Elegida) {
         Alternativa_Elegida = alternativa_Elegida;
+    }
+     
+    public String getFecha_Nacimiento() {
+        return Fecha_Nacimiento;
+    }
+
+    public void setFecha_Nacimiento(String fecha_Nacimiento){
+        Fecha_Nacimiento = fecha_Nacimiento;
+    }
+
+    public String getMayor_Edad() {
+        return Mayor_Edad;
+    }
+
+    public void setMayor_Edad(String mayor_Edad){
+        Mayor_Edad = mayor_Edad;
     }
 }

@@ -42,7 +42,11 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         tv = (TextView)findViewById(R.id.textView);
-
+         /*
+             0 -> TEST
+             1 -> PRODUCCION
+         */
+        ENTORNO_DESARROLLO = 1 ;
 
     }
 
@@ -52,11 +56,6 @@ public class MainActivity extends ActionBarActivity {
         ((Button) v).setText("Clicked");
 
         Log.i("[  INFO : ] -- ","buttonOnClick");
-
-         /*
-         0 -> TEST  ,   1 -> PRODUCCION
-         */
-        ENTORNO_DESARROLLO = 0 ;
 
         if(ENTORNO_DESARROLLO == 0){ //Test
 
@@ -68,12 +67,14 @@ public class MainActivity extends ActionBarActivity {
 
         }
 
+        Log.i("[  INFO : ] -- ",fullURL);
+
         getDataAsync();
 
         Thread t =new Thread(new Runnable() {
             @Override
             public void run() {
-                //postData() // en el metodo cambia lo que deseas insertar en el sheet
+                //postData();
             }
         });
         //t.start();
@@ -115,10 +116,9 @@ public class MainActivity extends ActionBarActivity {
     public void getDataAsync(){
 
         try {
-            //llamamos al servicio
             ServiceCaller caller = new ServiceCaller();
             caller.setUrl(fullURL);
-            //ejecutamos
+
             Log.i("[  INFO : ] -- ","_Inicio llamada async - getDateAsync()");
             new CallServiceGoogleSheet(caller).execute();
 
@@ -173,7 +173,7 @@ public class MainActivity extends ActionBarActivity {
                             persona.setCodTemporal(c.getV());
                         }
                     }catch(Exception ex){
-                        Log.i("Parse set to class exception",ex.toString());
+                        Log.i("Parse to class ex :",ex.toString());
                     }
                 }
                 lsObjects.add(persona);
@@ -215,13 +215,19 @@ public class MainActivity extends ActionBarActivity {
                     C c = c_list.get(j);
 
                     // En produccion
-                    // TODO : falta editar y agregar mas campos manualmente desde google sheet
-                    if( j == 0) { postulante.setFecha_registro(    c.getF()   );} // revisar si al se el insert es mas rapido con el "v": new Date(2015, 2, 14, 0, 54, 56)
-                    if( j == 1) { postulante.setNombre(   ( c.getV()));}
-                    if( j == 2) { postulante.setApellido(    c.getV()   );}
-                    if( j == 3) { postulante.setDNI(    c.getF()   );}
-                    if( j == 4) { postulante.setE_mail(    c.getV()   );}
-                    if( j == 5) { postulante.setAlternativa_Elegida(  ( c.getV())   );
+		   			try{
+                    // TODO : falta editar y agregar mas campos manualmente en google sheet 
+	                    if( j == 0) { postulante.setFecha_registro( c.getF() );} // revisar si al se el insert es mas rapido con el "v": new Date(2015, 2, 14, 0, 54, 56)
+	                    if( j == 1) { postulante.setNombre(   ( c.getV()));}
+	                    if( j == 2) { postulante.setApellido(    c.getV()   );}
+	                    if( j == 3) { postulante.setDNI(    c.getF()   );}
+	                    if( j == 4) { postulante.setE_mail(    c.getV()   );}
+	                    if( j == 5) { postulante.setAlternativa_Elegida(  ( c.getV())   );}
+	                    if( j == 6) { postulante.setFecha_Nacimiento(  ( c.getF())   );}
+	                    if( j == 7) { postulante.setMayor_Edad(  ( c.getV())   );}
+
+					}catch(Exception ex){
+                        Log.i("Parse to class ex :",ex.toString());
                     }
                 }
                 lsObjects.add(postulante);
@@ -242,7 +248,7 @@ public class MainActivity extends ActionBarActivity {
              //List<Postulante> pustulantes = castCollection(lsObjects,Postulante.class);
 
 
-            final GMailSender sender = new GMailSender("TU_EMAIL@gmail.com", "TU_PASSWORD");
+            final GMailSender sender = new GMailSender("TU_CORRO@gmail.com", "TU_PASSWORD");
 
             new Thread(new Runnable() {
                 public void run() {
@@ -260,7 +266,7 @@ public class MainActivity extends ActionBarActivity {
                             for (int i = 0; i < lsObjects.size(); i++) {
                                 sender.sendMail("Voluntades - Test envio de correos en automatico => ENTORNO_DESARROLLO : PRODUCCION",
                                         "Mensaje enviado en grupo , datos ingresados desde google form ",
-                                        "kevinmartell91@gmail.com",
+                                        "TU_MIAL@gmail.com",
                                         ((Postulante)(lsObjects.get(i))).getE_mail());
                                 Log.i("[  INFO : ] -- ","Envio de correo a : " + ((Postulante)(lsObjects.get(i))).getE_mail());
                             }

@@ -36,6 +36,8 @@ public class MainActivity extends ActionBarActivity {
     Integer ENTORNO_DESARROLLO;
     String fullURL;
     List<Object> lsObjects ;
+    private ServicePostulante servicePostulante;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +49,7 @@ public class MainActivity extends ActionBarActivity {
              1 -> PRODUCCION
          */
         ENTORNO_DESARROLLO = 1 ;
-
+        servicePostulante = new ServicePostulante();
     }
 
     public void buttonOnClick(View v){
@@ -261,6 +263,8 @@ public class MainActivity extends ActionBarActivity {
                                         ((Persona) (lsObjects.get(i))).getCorreo());
                                         //personas.get(i).getCorreo());
                                 Log.i("[  INFO : ] -- ", "Envio de correo a : " + ((Persona) (lsObjects.get(i))).getCorreo());
+                                /*update DB*/
+                                servicePostulante.updatePostulante("","","","","","","","","","","","","","","");
                             }
                         }else if(ENTORNO_DESARROLLO == 1){
                             for (int i = 0; i < lsObjects.size(); i++) {
